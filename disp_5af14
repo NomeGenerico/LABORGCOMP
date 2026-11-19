@@ -1,0 +1,49 @@
+LIBRARY IEEE;
+USE IEEE.std_logic_1164.ALL;
+
+ENTITY disp_5af14 IS
+  GENERIC (FIM : NATURAL := 9);            -- valor mostrado no HEX0 quando seg = 0 em VW
+  PORT (estado : IN  STD_LOGIC_VECTOR(1 DOWNTO 0); -- 00=GR 01=YW 10=RW 11=VW
+        seg    : IN  INTEGER RANGE 0 TO 9;
+        hex5, hex4, hex3, hex2 : OUT STD_LOGIC_VECTOR(6 DOWNTO 0);
+        hex1, hex0             : OUT STD_LOGIC_VECTOR(6 DOWNTO 0));
+END disp_5af14;
+
+ARCHITECTURE a OF disp_5af14 IS
+  -- segmentos "gfedcba", ativo em '0'
+  CONSTANT L_OFF : STD_LOGIC_VECTOR(6 DOWNTO 0) := "1111111";
+  CONSTANT L_F   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0001110";
+  CONSTANT L_I   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "1111001";
+  CONSTANT L_C   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "1000110";
+  CONSTANT L_A   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0001000";
+  CONSTANT L_P   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0001100";
+  CONSTANT L_R   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0101111";
+  CONSTANT L_E   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0000110";
+  CONSTANT L_S   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "0010010";
+  CONSTANT L_G   : STD_LOGIC_VECTOR(6 DOWNTO 0) := "1000010";
+
+  TYPE DIG_T IS ARRAY (0 TO 9) OF STD_LOGIC_VECTOR(6 DOWNTO 0);
+  CONSTANT DIG : DIG_T := ("1000000","1111001","0100100","0110000","0011001",
+                           "0010010","0000010","1111000","0000000","0010000");
+BEGIN
+  PROCESS(estado, seg)
+    VARIABLE d : INTEGER RANGE 0 TO 9;
+  BEGIN
+    hex1 <= L_OFF;  hex0 <= L_OFF;
+
+    CASE estado IS
+      WHEN "00" =>   -- GR: PArE
+        hex5 <= L_P; hex4 <= L_A; hex3 <= L_R; hex2 <= L_E;
+
+      WHEN "01" | "10" =>   -- YW e RW: FICA, pedido registrado
+        hex5 <= L_F; hex4 <= L_I; hex3 <= L_C; hex2 <= L_A;
+        hex1 <= L_A;
+
+      WHEN OTHERS =>  -- VW: SIGA, S e contagem regressiva
+        hex5 <= L_S; hex4 <= L_I; hex3 <= L_G; hex2 <= L_A;
+        hex1 <= L_S;
+        IF seg > FIM THEN d := 0; ELSE d := FIM - seg; END IF;
+        hex0 <= DIG(d);
+    END CASE;
+  END PROCESS;
+END a;
