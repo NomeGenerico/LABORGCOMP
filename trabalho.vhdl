@@ -35,11 +35,13 @@ BEGIN
 
     cnt100 : cont3_5af14 GENERIC_MAP(n = 500000) PORT_MAP (clk => clk, f => clk100)
 
-    Limpa_Botão : PROCESS(clk100'event and clk100 ='1')
+    Limpa_Botão : PROCESS(clk100)
     BEGIN
-        LB_a <= not(Botao);
-        LB_b <= LB_a;
-        BTL <= (LB_a and not(LB_b));
+		IF(clk100'event and clk100 ='1') then
+			LB_a <= not(Botao);
+			LB_b <= LB_a;
+			BTL <= (LB_a and not(LB_b));
+			END IF;
     END PROCESS Limpa_Botão
 
 						
